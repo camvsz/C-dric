@@ -1,0 +1,7 @@
+{
+  "name": "Opération Azur: Agent Nomade",
+  "description": "Une chasse au trésor interactive pour l'agent Cédric à travers Nice.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
