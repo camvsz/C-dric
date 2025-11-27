@@ -297,9 +297,9 @@ export default function App() {
         <div className="relative group mt-8">
             <div className="absolute -inset-0.5 bg-gradient-to-br from-cyan-900/50 to-blue-900/50 rounded-xl opacity-50 blur-sm"></div>
             <div className="relative bg-slate-900/80 border border-slate-700 p-8 rounded-xl shadow-xl overflow-hidden">
-                {/* Decorative Background Quotes */}
-                <span className="absolute top-0 left-2 text-8xl text-cyan-900/20 font-serif leading-none select-none pointer-events-none">“</span>
-                <span className="absolute -bottom-8 right-2 text-8xl text-cyan-900/20 font-serif leading-none select-none pointer-events-none">”</span>
+                {/* Decorative Background Quotes - IT Style */}
+                <span className="absolute -top-6 -left-2 text-9xl text-cyan-500/10 font-mono leading-none select-none pointer-events-none">"</span>
+                <span className="absolute -bottom-12 -right-2 text-9xl text-cyan-500/10 font-mono leading-none select-none pointer-events-none">"</span>
 
                 <div className="flex items-center justify-between mb-4 border-b border-slate-700 pb-2 relative z-10">
                     <div className="flex items-center gap-2 text-cyan-300">
@@ -308,7 +308,7 @@ export default function App() {
                     </div>
                     <span className="text-[10px] text-slate-500">{new Date().toLocaleDateString()}</span>
                 </div>
-                <p className="text-lg text-slate-100 leading-relaxed font-sans italic relative z-10">
+                <p className="text-lg text-slate-100 leading-relaxed font-mono relative z-10">
                     {currentStep.clue}
                 </p>
             </div>
