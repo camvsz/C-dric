@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import TerminalHeader from './components/TerminalHeader';
 import { MISSION_STEPS, FINAL_REVEAL } from './constants';
-import { MapPin, Lock, Unlock, ArrowRight, CheckCircle, Terminal, Eye, AlertTriangle, RefreshCw } from 'lucide-react';
+import { MapPin, Lock, Unlock, ArrowRight, CheckCircle, Terminal, AlertTriangle, RefreshCw, X } from 'lucide-react';
 
 export default function App() {
   const [currentStepIndex, setCurrentStepIndex] = useState(() => {
@@ -26,12 +26,13 @@ export default function App() {
   const [inputCode, setInputCode] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('op_azur_step', currentStepIndex.toString());
   }, [currentStepIndex]);
 
-  const currentStep = MISSION_STEPS[currentStepIndex];
+  const currentStep = MISSION_STEPS[currentStepIndex] || MISSION_STEPS[0];
 
   const handleCodeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,12 +65,79 @@ export default function App() {
     }
   };
 
-  const resetMission = () => {
-    if (window.confirm("⚠️ PROTOCOLE D'URGENCE\n\nVoulez-vous vraiment réinitialiser toute la mission et effacer la progression ?")) {
-      localStorage.removeItem('op_azur_step');
-      window.location.reload();
-    }
+  const handleResetRequest = () => {
+    setShowResetModal(true);
   };
+
+  const confirmReset = () => {
+    // 1. Reset Storage
+    try {
+      localStorage.removeItem('op_azur_step');
+    } catch (e) {
+      console.error("Storage failed", e);
+    }
+    
+    // 2. Reset React State immediately (Visual feedback is instant)
+    setShowResetModal(false);
+    setCurrentStepIndex(0);
+    setView('MISSION');
+    setInputCode('');
+    setErrorMsg('');
+    setIsSuccess(false);
+
+    // 3. Attempt reload for a "fresh" start (optional but safer)
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
+  };
+
+  const cancelReset = () => {
+    setShowResetModal(false);
+  };
+
+  // --- RENDERING HELPERS ---
+
+  const ResetModal = () => (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]">
+      <div className="bg-slate-900 border-2 border-red-600 w-full max-w-sm p-6 rounded shadow-[0_0_50px_rgba(220,38,38,0.4)] text-center relative overflow-hidden">
+        {/* Animated background stripes */}
+        <div className="absolute inset-0 opacity-10 pointer-events-none" 
+             style={{backgroundImage: 'repeating-linear-gradient(45deg, #dc2626 0, #dc2626 10px, transparent 10px, transparent 20px)'}}>
+        </div>
+        
+        <div className="relative z-10">
+          <div className="flex justify-center mb-4">
+            <AlertTriangle size={48} className="text-red-500 animate-pulse" />
+          </div>
+          
+          <h2 className="text-2xl font-bold text-white mb-2 uppercase tracking-widest">Zone Rouge</h2>
+          <p className="text-red-200 mb-8 font-sans text-sm leading-relaxed">
+            Êtes-vous certain de vouloir réinitialiser la mission ?<br/>
+            Toute progression sera perdue.
+          </p>
+          
+          <div className="flex flex-col gap-3">
+            <button 
+              type="button"
+              onClick={confirmReset}
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-4 rounded uppercase tracking-[0.2em] shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <RefreshCw size={18} />
+              Confirmer Reset
+            </button>
+            
+            <button 
+              type="button"
+              onClick={cancelReset}
+              className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 px-4 rounded uppercase tracking-wider transition-colors cursor-pointer"
+            >
+              Annuler
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   // FINAL VIEW
   if (view === 'FINAL' || currentStepIndex >= MISSION_STEPS.length) {
@@ -99,13 +167,14 @@ export default function App() {
            </div>
            
            <button 
-             onClick={resetMission} 
-             className="mt-12 group flex items-center gap-2 px-6 py-3 border border-red-900/30 rounded bg-red-950/10 hover:bg-red-900/30 text-red-800 hover:text-red-500 transition-all uppercase tracking-widest text-xs"
+             onClick={handleResetRequest} 
+             className="mt-12 group flex items-center gap-2 px-6 py-3 border border-red-900/30 rounded bg-red-950/10 hover:bg-red-900/30 text-red-800 hover:text-red-500 transition-all uppercase tracking-widest text-xs cursor-pointer"
            >
              <RefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-500" />
              SYSTEM RESET
            </button>
         </div>
+        {showResetModal && <ResetModal />}
       </div>
     );
   }
@@ -118,7 +187,7 @@ export default function App() {
         <div className="p-6 max-w-md mx-auto min-h-[80vh] flex flex-col">
           <button 
             onClick={() => { setView('MISSION'); setErrorMsg(''); setInputCode(''); }}
-            className="mb-6 flex items-center gap-2 text-slate-500 hover:text-cyan-400 transition-colors text-sm uppercase tracking-wider"
+            className="mb-6 flex items-center gap-2 text-slate-500 hover:text-cyan-400 transition-colors text-sm uppercase tracking-wider cursor-pointer"
           >
             ← Retour Mission
           </button>
@@ -171,7 +240,7 @@ export default function App() {
 
                   <button 
                     type="submit"
-                    className="w-full bg-cyan-950 hover:bg-cyan-900 text-cyan-400 border border-cyan-700 p-4 rounded uppercase tracking-[0.2em] font-bold transition-all active:scale-95 hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] mt-4"
+                    className="w-full bg-cyan-950 hover:bg-cyan-900 text-cyan-400 border border-cyan-700 p-4 rounded uppercase tracking-[0.2em] font-bold transition-all active:scale-95 hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] mt-4 cursor-pointer"
                   >
                     Valider
                   </button>
@@ -210,7 +279,7 @@ export default function App() {
         {/* Location Header */}
         <div className="relative border-l-4 border-cyan-600 pl-4 py-2 mt-6">
             <h2 className="text-xs text-cyan-700 uppercase tracking-widest mb-1">Cible Actuelle</h2>
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-6">
                 <div className="mt-1 relative">
                     <span className="absolute flex h-3 w-3">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -227,38 +296,29 @@ export default function App() {
         {/* Clue Box */}
         <div className="relative group mt-8">
             <div className="absolute -inset-0.5 bg-gradient-to-br from-cyan-900/50 to-blue-900/50 rounded-xl opacity-50 blur-sm"></div>
-            <div className="relative bg-slate-900/80 border border-slate-700 p-6 rounded-xl shadow-xl">
-                <div className="flex items-center justify-between mb-4 border-b border-slate-700 pb-2">
+            <div className="relative bg-slate-900/80 border border-slate-700 p-8 rounded-xl shadow-xl overflow-hidden">
+                {/* Decorative Background Quotes */}
+                <span className="absolute top-0 left-2 text-8xl text-cyan-900/20 font-serif leading-none select-none pointer-events-none">“</span>
+                <span className="absolute -bottom-8 right-2 text-8xl text-cyan-900/20 font-serif leading-none select-none pointer-events-none">”</span>
+
+                <div className="flex items-center justify-between mb-4 border-b border-slate-700 pb-2 relative z-10">
                     <div className="flex items-center gap-2 text-cyan-300">
                         <Terminal size={16} />
                         <span className="text-xs font-bold tracking-wider uppercase">Message Sécurisé</span>
                     </div>
                     <span className="text-[10px] text-slate-500">{new Date().toLocaleDateString()}</span>
                 </div>
-                <p className="text-lg text-slate-100 leading-relaxed font-sans italic relative">
-                    <span className="text-4xl text-cyan-900 absolute -top-4 -left-2">"</span>
+                <p className="text-lg text-slate-100 leading-relaxed font-sans italic relative z-10">
                     {currentStep.clue}
-                    <span className="text-4xl text-cyan-900 absolute -bottom-6 -right-2">"</span>
                 </p>
             </div>
-        </div>
-
-        {/* Objective */}
-        <div className="bg-slate-900/40 p-4 rounded border border-dashed border-slate-800 mt-4">
-            <div className="flex items-center gap-2 mb-2 text-amber-500">
-                <Eye size={16} />
-                <span className="text-xs font-bold uppercase tracking-wider">Objectif</span>
-            </div>
-            <p className="text-sm text-slate-300 font-sans">
-                {currentStep.objective}
-            </p>
         </div>
 
         {/* CTA Button */}
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black via-black to-transparent z-30">
             <button
                 onClick={() => setView('CODE')}
-                className="w-full max-w-lg mx-auto bg-cyan-600 hover:bg-cyan-500 text-black font-bold py-4 px-6 rounded shadow-[0_0_20px_rgba(8,145,178,0.4)] flex items-center justify-center gap-3 transition-all active:scale-95 uppercase tracking-wider"
+                className="w-full max-w-lg mx-auto bg-cyan-600 hover:bg-cyan-500 text-black font-bold py-4 px-6 rounded shadow-[0_0_20px_rgba(8,145,178,0.4)] flex items-center justify-center gap-3 transition-all active:scale-95 uppercase tracking-wider cursor-pointer"
             >
                 <Unlock size={20} />
                 <span>{currentStep.isFinal ? "Code Mission Final" : "Entrer Code Étape"}</span>
@@ -267,12 +327,17 @@ export default function App() {
         </div>
 
         {/* Discrete Reset Button in Mission View */}
-        <div className="mt-12 text-center pb-20 opacity-30 hover:opacity-100 transition-opacity">
-           <button onClick={resetMission} className="text-[10px] text-red-500 uppercase tracking-widest border-b border-transparent hover:border-red-500">
+        <div className="mt-12 text-center pb-24 opacity-50 hover:opacity-100 transition-opacity">
+           <button 
+             onClick={handleResetRequest} 
+             className="px-4 py-3 text-[10px] text-red-500 uppercase tracking-widest border border-red-900/30 rounded bg-red-950/20 hover:bg-red-900/40 cursor-pointer"
+           >
              [ Réinitialiser la mission ]
            </button>
         </div>
       </main>
+      
+      {showResetModal && <ResetModal />}
     </div>
   );
 }

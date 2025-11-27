@@ -26,7 +26,10 @@ const TerminalHeader: React.FC = () => {
       <div className="flex justify-between items-end">
         <div>
           <div className="text-xs text-slate-400">AGENT</div>
-          <div className="text-lg font-bold text-white uppercase">{AGENT_NAME} <span className="text-cyan-500">"{AGENT_CODENAME}"</span></div>
+          <div className="text-lg font-bold text-white uppercase">
+            {AGENT_NAME} 
+            {AGENT_CODENAME && <span className="text-cyan-500 ml-2">"{AGENT_CODENAME}"</span>}
+          </div>
         </div>
         <div className="text-right">
           <div className="text-xs text-slate-400">LOCAL TIME</div>

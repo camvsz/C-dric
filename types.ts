@@ -4,7 +4,6 @@ export interface MissionStep {
   locationName: string;
   context: string;
   clue: string;
-  objective: string;
   unlockCode: string; // The code the user needs to enter to proceed TO the next step
   isFinal?: boolean;
 }
